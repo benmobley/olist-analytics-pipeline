@@ -1,0 +1,30 @@
+version: 2
+
+models:
+  - name: stg_customers
+    description: Staged customers from seeds
+    columns:
+      - name: customer_id
+        tests: [not_null, unique]
+      - name: email
+        tests: [not_null]
+
+  - name: stg_orders
+    columns:
+      - name: order_id
+        tests: [not_null, unique]
+      - name: customer_id
+        tests: [not_null]
+
+  - name: dim_customer
+    columns:
+      - name: customer_id
+        tests: [not_null, unique]
+
+  - name: fact_orders
+    columns:
+      - name: order_id
+        tests: [not_null, unique]
+      - name: total_amount
+        tests:
+          - not_null
