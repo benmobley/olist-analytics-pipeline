@@ -59,10 +59,7 @@ dbt tests are used to keep the models trustworthy:
   - `top_customers.customer_id` is unique / not null  
 
 Run all models + tests:
-
-```bash
-dbt build
-
+	dbt build
 
 ## Dashboard (Metabase)
 
