@@ -170,8 +170,8 @@ Create the raw schema once:
 
 ## Future Improvements
 
-  	•	Add incremental models for large Olist tables
-  	•	Add snapshots for slowly changing customer attributes
-  	•	Automate dbt build via GitHub Actions CI
-  	•	Add more product-level metrics (e.g., category-level revenue, repeat purchase behavior)
+•	Add incremental models for large Olist tables
+•	Add snapshots for slowly changing customer attributes
+•	Automate dbt build via GitHub Actions CI
+•	Add more product-level metrics (e.g., category-level revenue, repeat purchase behavior)
 
