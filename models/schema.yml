@@ -1,30 +1,96 @@
 version: 2
 
 models:
+  # Staging Models: Clean and standardize raw data
   - name: stg_customers
-    description: Staged customers from seeds
+    description: Staged customer data from raw seeds. Renames and standardizes customer identifiers and contact information.
     columns:
       - name: customer_id
+        description: Unique customer identifier (renamed from 'id')
         tests: [not_null, unique]
-      - name: email
+      - name: first_name
+        description: Customer's first name
         tests: [not_null]
+      - name: last_name
+        description: Customer's last name
+        tests: [not_null]
+      - name: email
+        description: Customer's email address
+        tests: [not_null, unique]
 
   - name: stg_orders
+    description: Staged order data from raw seeds. Standardizes order dates and customer relationships.
     columns:
       - name: order_id
+        description: Unique order identifier (renamed from 'id')
         tests: [not_null, unique]
       - name: customer_id
+        description: Foreign key to customer (renamed from 'user_id')
+        tests: [not_null, relationships]
+      - name: order_date
+        description: Date the order was placed (cast to date type)
+        tests: [not_null]
+      - name: status
+        description: Current order status
+        tests: 
+          - not_null
+          - accepted_values:
+              values: ['pending', 'processing', 'completed', 'cancelled']
+
+  - name: stg_payments
+    description: Staged payment data from raw seeds. Standardizes payment amounts and method tracking.
+    columns:
+      - name: payment_id
+        description: Unique payment identifier (renamed from 'id')
+        tests: [not_null, unique]
+      - name: order_id
+        description: Foreign key to order
+        tests: [not_null, relationships]
+      - name: payment_method
+        description: Method of payment
+        tests: [not_null]
+      - name: amount
+        description: Payment amount (cast to numeric type)
+        tests: 
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_of_type:
+              column_type: numeric
+          - dbt_expectations.expect_column_values_to_be_positive:
+
+  # Mart Models: Business-ready dimensional and fact tables
+  - name: dim_customer
+    description: Customer dimension table. Contains denormalized customer attributes for analytics and reporting.
+    columns:
+      - name: customer_id
+        description: Unique customer identifier
+        tests: [not_null, unique, relationships]
+      - name: first_name
+        description: Customer's first name
+        tests: [not_null]
+      - name: last_name
+        description: Customer's last name
+        tests: [not_null]
+      - name: email
+        description: Customer's email address
         tests: [not_null]
 
-  - name: dim_customer
-    columns:
-      - name: customer_id
-        tests: [not_null, unique]
-
   - name: fact_orders
+    description: Order fact table. Contains order events with aggregated payment totals for analysis. One row per order with customer and payment details.
     columns:
       - name: order_id
+        description: Unique order identifier
         tests: [not_null, unique]
+      - name: customer_id
+        description: Foreign key to dim_customer
+        tests: [not_null, relationships]
+      - name: order_date
+        description: Date the order was placed
+        tests: [not_null]
+      - name: status
+        description: Current order status
+        tests: [not_null]
       - name: total_amount
-        tests:
+        description: Total payment amount for the order (summed from all payments, defaults to 0 if no payments)
+        tests: 
           - not_null
+          - dbt_expectations.expect_column_values_to_be_non_negative:
